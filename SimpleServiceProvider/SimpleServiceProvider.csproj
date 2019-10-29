@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Authors>José A. Saldaña Perez</Authors>
+        <Description>Simplified dependency injection provider.</Description>
+        <Product>SimpleServiceProvider</Product>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <OutputType>Library</OutputType>
+        <Version>1.0.0</Version>
+        <PackageVersion>1.0.0</PackageVersion>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/jsaldanaperez/SimpleServiceProvider</PackageProjectUrl>
+        <PackOnBuild>true</PackOnBuild>
+        <PackageTags>Dependency Injection</PackageTags>
+        <Copyright>José A. Saldaña Perez</Copyright>
+        <LangVersion>7.3</LangVersion>
+    </PropertyGroup>
+
+</Project>
