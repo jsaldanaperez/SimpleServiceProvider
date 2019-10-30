@@ -9,64 +9,74 @@ namespace SimpleServiceProvider
         private readonly IDictionary<Type, Type> _serviceDefinitions = new Dictionary<Type, Type>();
         private readonly IDictionary<Type, object> _instances = new Dictionary<Type, object>();
         
-        public void Add<TInterface, TImplementation>() where TImplementation : class, TInterface
+        public void Add<TType, TImplementation>() where TImplementation : class, TType
         {
-            if (_serviceDefinitions.ContainsKey(typeof(TInterface)))
+            var type = typeof(TType);
+            var typeImplementation = typeof(TImplementation);
+            
+            if (_serviceDefinitions.ContainsKey(type))
             {
-                _serviceDefinitions[typeof(TInterface)] = typeof(TImplementation);
+                _serviceDefinitions[type] = typeImplementation;
             }
             else
             {
-                _serviceDefinitions.Add(typeof(TInterface), typeof(TImplementation));
+                _serviceDefinitions.Add(type, typeImplementation);
             }
         }
 
-        public void Add<TInterface>(object instance)
+        public void Add<TType>(object instance)
         {
-            if (_instances.ContainsKey(typeof(TInterface)))
+            var type = typeof(TType);
+            if (_instances.ContainsKey(type))
             {
-                _instances[typeof(TInterface)] = instance;
+                _instances[type] = instance;
             }
             else
             {
-                _instances.Add(typeof(TInterface), instance);
+                _instances.Add(type, instance);
             }
         }
 
-        public TService GetService<TService>() where TService : class
+        public TType Get<TType>() where TType : class
         {
-            return ResolveType(typeof(TService)) as TService;
+            return ResolveType(typeof(TType)) as TType;
         }
 
-        private object ResolveType(Type interfaceType)
+        private object ResolveType(Type type)
         { 
-            if (_instances.ContainsKey(interfaceType))
+            if (_instances.ContainsKey(type))
             {
-                return _instances[interfaceType];
+                return _instances[type];
             }
 
-            var implementationType = _serviceDefinitions[interfaceType];
-            var constructorInfo = implementationType.GetConstructors().FirstOrDefault();
+            var typeImplementation = _serviceDefinitions[type];
+            var constructorInfo = typeImplementation.GetConstructors().FirstOrDefault();
 
             if (constructorInfo == null || !constructorInfo.GetParameters().Any())
             {
-                var instance = Activator.CreateInstance(implementationType);
-                _instances.Add(interfaceType, instance);
-                return instance;
+                return CreateInstance(typeImplementation);
             }
  
-            var resolvedInstances = new List<object>();
-            constructorInfo.GetParameters().ToList().ForEach(x =>
+            var parameterInfos = constructorInfo.GetParameters();
+            var resolvedInstances = new object[parameterInfos.Length];
+
+            for (var index = 0; index < parameterInfos.Length; index++)
             {
-                var parameterType = x.ParameterType;
-                resolvedInstances.Add(_instances.ContainsKey(parameterType) ? 
-                     _instances[parameterType] : ResolveType(parameterType));
-            });
+                var parameterInfo = parameterInfos[index];
+                var parameterType = parameterInfo.ParameterType;
+                resolvedInstances[index] = _instances.ContainsKey(parameterType)
+                    ? _instances[parameterType]
+                    : ResolveType(parameterType);
+            }
 
-            var newInstance = Activator.CreateInstance(implementationType, resolvedInstances.ToArray());
-            _instances.Add(interfaceType, newInstance);
+            return CreateInstance(typeImplementation, resolvedInstances);
+        }
 
-            return newInstance;
-        } 
+        private object CreateInstance(Type type, params object[] args)
+        {
+            var instance = Activator.CreateInstance(type, args);
+            _instances.Add(type, instance);
+            return instance;
+        }
     }
 }
