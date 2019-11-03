@@ -44,12 +44,12 @@ namespace SimpleServiceProvider
 
         private object ResolveType(Type type)
         { 
-            if (_instances.ContainsKey(type))
-            {
-                return _instances[type];
-            }
-
             var typeImplementation = _serviceDefinitions[type];
+            if (_instances.ContainsKey(typeImplementation))
+            {
+                return _instances[typeImplementation];
+            }
+            
             var constructorInfo = typeImplementation.GetConstructors().FirstOrDefault();
 
             if (constructorInfo == null || !constructorInfo.GetParameters().Any())
@@ -62,8 +62,7 @@ namespace SimpleServiceProvider
 
             for (var index = 0; index < parameterInfos.Length; index++)
             {
-                var parameterInfo = parameterInfos[index];
-                var parameterType = parameterInfo.ParameterType;
+                var parameterType = parameterInfos[index].ParameterType;
                 resolvedInstances[index] = _instances.ContainsKey(parameterType)
                     ? _instances[parameterType]
                     : ResolveType(parameterType);
