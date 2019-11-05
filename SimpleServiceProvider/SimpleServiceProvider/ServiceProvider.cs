@@ -4,35 +4,65 @@ using System.Linq;
 
 namespace SimpleServiceProvider
 {
+    /// <summary>
+    /// Dependency injection provider
+    /// </summary>
     public class ServiceProvider
     {
         private readonly IDictionary<Type, Type> _serviceDefinitions = new Dictionary<Type, Type>();
-        private readonly IDictionary<Type, object> _instances = new Dictionary<Type, object>();
-        
+        private readonly IDictionary<Type, object> _resolvedInstances = new Dictionary<Type, object>();
+        private readonly IDictionary<Type, object> _addedInstances = new Dictionary<Type, object>();
+
+        /// <summary>
+        /// Register type to resolve with the instance type to instantiate. 
+        /// </summary> 
         public void Add<TType, TImplementation>() where TImplementation : class, TType
         {
             AddServiceDefinition(typeof(TType), typeof(TImplementation));
         }
 
+        /// <summary>
+        /// Register type to resolve with an instance. 
+        /// </summary> 
         public void Add<TType>(object instance)
         {
             var type = typeof(TType);
             var instanceType = instance.GetType();
             AddServiceDefinition(type, instanceType);
 
-            if (_instances.ContainsKey(instanceType))
+            if (_addedInstances.ContainsKey(instanceType))
             {
-                _instances[instanceType] = instance;
+                _addedInstances[instanceType] = instance;
             }
             else
             {
-                _instances.Add(instanceType, instance);
+                _addedInstances.Add(instanceType, instance);
             }
         }
 
+        /// <summary>
+        /// Get instance of a registered type. 
+        /// </summary> 
         public TType Get<TType>() where TType : class
         {
             return ResolveType(typeof(TType)) as TType;
+        }
+
+        /// <summary>
+        /// Removes resolved instances from cache.
+        /// </summary>
+        public void Clear()
+        {
+            _resolvedInstances.Clear();
+        }
+        
+        /// <summary>
+        /// Removes resolved and added instances from cache.
+        /// </summary>
+        public void Reset()
+        {
+            _addedInstances.Clear();
+            _resolvedInstances.Clear();
         }
         
         private void AddServiceDefinition(Type type, Type typeImplementation)
@@ -50,9 +80,14 @@ namespace SimpleServiceProvider
         private object ResolveType(Type type)
         { 
             var typeImplementation = _serviceDefinitions[type];
-            if (_instances.ContainsKey(typeImplementation))
+            if (_addedInstances.ContainsKey(typeImplementation))
             {
-                return _instances[typeImplementation];
+                return _addedInstances[typeImplementation];
+            }
+            
+            if (_resolvedInstances.ContainsKey(typeImplementation))
+            {
+                return _resolvedInstances[typeImplementation];
             }
             
             var constructorInfo = typeImplementation.GetConstructors().FirstOrDefault();
@@ -68,8 +103,8 @@ namespace SimpleServiceProvider
             for (var index = 0; index < parameterInfos.Length; index++)
             {
                 var parameterType = parameterInfos[index].ParameterType;
-                resolvedInstances[index] = _instances.ContainsKey(parameterType)
-                    ? _instances[parameterType]
+                resolvedInstances[index] = _resolvedInstances.ContainsKey(parameterType)
+                    ? _resolvedInstances[parameterType]
                     : ResolveType(parameterType);
             }
 
@@ -79,7 +114,7 @@ namespace SimpleServiceProvider
         private object CreateInstance(Type type, params object[] args)
         {
             var instance = Activator.CreateInstance(type, args);
-            _instances.Add(type, instance);
+            _resolvedInstances.Add(type, instance);
             return instance;
         }
     }

@@ -54,6 +54,50 @@ namespace SimpleServiceProvider.Tests
             //Assert 
             Assert.Same(expectedInstance, result);
         }
+        
+        [Fact]
+        public void OnGet_WithAddInstance_Clear_ItShouldResolveTheSameInstance()
+        {
+            //Arrange
+            var subject = new ServiceProvider();
+            var expectedInstance = new Test3();
+            subject.Add<ITest1, Test1>();
+            subject.Add<ITest2, Test2>();
+            subject.Add<ITest3, Test3>();
+            subject.Get<ITest1>();
+            subject.Add<ITest3>(expectedInstance);
+            
+            //Act
+            subject.Clear();
+            var result = subject.Get<ITest1>();
+            
+
+            //Assert 
+            Assert.Same(expectedInstance, result.Test2.Test3);
+        }
+        
+        [Fact]
+        public void OnGet_Reset_ItShouldResolveANewInstance()
+        {
+            //Arrange
+            var subject = new ServiceProvider();
+            var expectedInstance = new Test3();
+            subject.Add<ITest1, Test1>();
+            subject.Add<ITest2, Test2>();
+            subject.Add<ITest3>(expectedInstance);
+            
+            
+            //Act
+            var result1 = subject.Get<ITest3>();
+            var result2 = subject.Get<ITest3>();
+            subject.Reset();
+            var result3 = subject.Get<ITest3>();
+            
+
+            //Assert 
+            Assert.Same(result1, result2);
+            Assert.NotSame(result2, result3);
+        }
     }
 
     #region TestClasses
