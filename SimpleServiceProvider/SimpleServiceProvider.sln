@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleServiceProvider", "SimpleServiceProvider.csproj", "{FEB550CA-A546-4ABE-85D4-309100D8E284}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleServiceProvider", "SimpleServiceProvider\SimpleServiceProvider.csproj", "{E13768D2-9D79-4BB0-925B-02837BF536F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleServiceProvider.Tests", "SimpleServiceProvider.Tests\SimpleServiceProvider.Tests.csproj", "{7332E5CA-1489-4977-A422-18A8668F3925}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +10,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FEB550CA-A546-4ABE-85D4-309100D8E284}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FEB550CA-A546-4ABE-85D4-309100D8E284}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FEB550CA-A546-4ABE-85D4-309100D8E284}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FEB550CA-A546-4ABE-85D4-309100D8E284}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E13768D2-9D79-4BB0-925B-02837BF536F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E13768D2-9D79-4BB0-925B-02837BF536F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E13768D2-9D79-4BB0-925B-02837BF536F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E13768D2-9D79-4BB0-925B-02837BF536F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7332E5CA-1489-4977-A422-18A8668F3925}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7332E5CA-1489-4977-A422-18A8668F3925}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7332E5CA-1489-4977-A422-18A8668F3925}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7332E5CA-1489-4977-A422-18A8668F3925}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

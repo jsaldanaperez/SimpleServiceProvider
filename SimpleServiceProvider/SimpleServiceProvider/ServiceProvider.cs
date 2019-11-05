@@ -11,9 +11,32 @@ namespace SimpleServiceProvider
         
         public void Add<TType, TImplementation>() where TImplementation : class, TType
         {
+            AddServiceDefinition(typeof(TType), typeof(TImplementation));
+        }
+
+        public void Add<TType>(object instance)
+        {
             var type = typeof(TType);
-            var typeImplementation = typeof(TImplementation);
-            
+            var instanceType = instance.GetType();
+            AddServiceDefinition(type, instanceType);
+
+            if (_instances.ContainsKey(instanceType))
+            {
+                _instances[instanceType] = instance;
+            }
+            else
+            {
+                _instances.Add(instanceType, instance);
+            }
+        }
+
+        public TType Get<TType>() where TType : class
+        {
+            return ResolveType(typeof(TType)) as TType;
+        }
+        
+        private void AddServiceDefinition(Type type, Type typeImplementation)
+        {
             if (_serviceDefinitions.ContainsKey(type))
             {
                 _serviceDefinitions[type] = typeImplementation;
@@ -22,24 +45,6 @@ namespace SimpleServiceProvider
             {
                 _serviceDefinitions.Add(type, typeImplementation);
             }
-        }
-
-        public void Add<TType>(object instance)
-        {
-            var type = typeof(TType);
-            if (_instances.ContainsKey(type))
-            {
-                _instances[type] = instance;
-            }
-            else
-            {
-                _instances.Add(type, instance);
-            }
-        }
-
-        public TType Get<TType>() where TType : class
-        {
-            return ResolveType(typeof(TType)) as TType;
         }
 
         private object ResolveType(Type type)

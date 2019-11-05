@@ -1,4 +1,8 @@
 /.idea
-/SimpleServiceProvider/bin
-/SimpleServiceProvider/obj
 /SimpleServiceProvider/.idea
+/SimpleServiceProvider/SimpleServiceProvider/bin
+/SimpleServiceProvider/SimpleServiceProvider/obj
+/SimpleServiceProvider/SimpleServiceProvider/.idea
+/SimpleServiceProvider/SimpleServiceProvider.Tests/bin
+/SimpleServiceProvider/SimpleServiceProvider.Tests/obj
+/SimpleServiceProvider/SimpleServiceProvider.Tests/.idea
