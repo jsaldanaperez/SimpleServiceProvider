@@ -17,7 +17,9 @@
         <PackageTags>Dependency Injection</PackageTags>
         <Copyright>José A. Saldaña Perez</Copyright>
         <LangVersion>7.3</LangVersion>
-        <PackageReleaseNotes>Bug fix: System.Collections.Generic.KeyNotFoundException when resolving a type registered with an instance.</PackageReleaseNotes>
+        <PackageReleaseNotes>* Bug fix: System.Collections.Generic.KeyNotFoundException when resolving a type registered with an instance.
+* Added options 'Clear' and 'Reset'.
+* Added XML docs.</PackageReleaseNotes>
     </PropertyGroup>
 
 </Project>
