@@ -1,9 +1,8 @@
-using System;
 using Xunit;
 
 namespace SimpleServiceProvider.Tests
 {
-    public class SimpleServiceProviderTest
+    public class ServiceProviderTest
     {
         [Fact]
         public void OnGet_ItShouldResolveAllInstances()
@@ -28,7 +27,7 @@ namespace SimpleServiceProvider.Tests
             var subject = new ServiceProvider();
             subject.Add<ITest1, Test1>();
             subject.Add<ITest2, Test2>();
-            subject.Add<ITest3, Test3>();
+            subject.Add(typeof(ITest3), typeof(Test3));
             
             //Act
             var test1 = subject.Get<ITest1>();
@@ -98,10 +97,10 @@ namespace SimpleServiceProvider.Tests
             Assert.Same(result1, result2);
             Assert.NotSame(result2, result3);
         }
-    }
-
-    #region TestClasses
-
+    } 
+    
+    #region Test classes
+    
     public interface ITest1
     {
         ITest2 Test2 { get; }
@@ -140,6 +139,6 @@ namespace SimpleServiceProvider.Tests
     public class Test3 : ITest3
     {
     }
-
+    
     #endregion
 }

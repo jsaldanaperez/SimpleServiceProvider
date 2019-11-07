@@ -20,6 +20,14 @@ namespace SimpleServiceProvider
         {
             AddServiceDefinition(typeof(TType), typeof(TImplementation));
         }
+        
+        /// <summary>
+        /// Register type to resolve with the instance type to instantiate. 
+        /// </summary> 
+        public void Add(Type type, Type typeImplementation)
+        {
+            AddServiceDefinition(type, typeImplementation);
+        }
 
         /// <summary>
         /// Register type to resolve with an instance. 
@@ -78,8 +86,19 @@ namespace SimpleServiceProvider
         }
 
         private object ResolveType(Type type)
-        { 
-            var typeImplementation = _serviceDefinitions[type];
+        {
+            Type typeImplementation;
+            if (type.IsGenericType && !_serviceDefinitions.ContainsKey(type))
+            {
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+                var genericTypeImplementation = _serviceDefinitions[genericTypeDefinition];
+                typeImplementation = genericTypeImplementation.MakeGenericType(type.GetGenericArguments());
+            }
+            else
+            {
+                typeImplementation = _serviceDefinitions[type];
+            }
+            
             if (_addedInstances.ContainsKey(typeImplementation))
             {
                 return _addedInstances[typeImplementation];
