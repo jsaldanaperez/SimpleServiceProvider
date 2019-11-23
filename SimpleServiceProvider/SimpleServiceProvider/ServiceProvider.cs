@@ -125,20 +125,10 @@ namespace SimpleServiceProvider
             if (!_resolveExpressions.ContainsKey(type))
             {
                 _resolveExpressions.Add(type, expression);
-                var definitionServiceProvider = new DefinitionsProvider();
-                expression(definitionServiceProvider);
-                foreach (var serviceDefinition in definitionServiceProvider._serviceDefinitions)
-                {
-                    if (!_serviceDefinitions.ContainsKey(serviceDefinition.Key))
-                    {
-                        _serviceDefinitions.Add(serviceDefinition);   
-                    }
-                }
             }
         }
 
-        /// <summary></summary>
-        protected virtual object ResolveType(Type type)
+        private object ResolveType(Type type)
         {
             Type typeImplementation;
             if (type.IsGenericType && !_serviceDefinitions.ContainsKey(type))
@@ -192,15 +182,6 @@ namespace SimpleServiceProvider
             var instance = Activator.CreateInstance(type, args);
             _resolvedInstances.Add(type, instance);
             return instance;
-        }
-        
-        private class DefinitionsProvider: ServiceProvider
-        {
-            protected override object ResolveType(Type type)
-            {
-                AddServiceDefinition(type, type);
-                return null;
-            }
         }
     }
 }
