@@ -12,6 +12,8 @@ namespace SimpleServiceProvider
         private readonly IDictionary<Type, Type> _serviceDefinitions = new Dictionary<Type, Type>();
         private readonly IDictionary<Type, object> _resolvedInstances = new Dictionary<Type, object>();
         private readonly IDictionary<Type, object> _addedInstances = new Dictionary<Type, object>();
+        private readonly IDictionary<Type, Func<ServiceProvider, object>> _resolveExpressions =
+            new Dictionary<Type, Func<ServiceProvider, object>>();
 
         /// <summary>
         /// Register type to resolve with the instance type to instantiate. 
@@ -22,11 +24,36 @@ namespace SimpleServiceProvider
         }
         
         /// <summary>
+        /// Register type. 
+        /// </summary> 
+        public void Add<TType>()
+        {
+            var type = typeof(TType);
+            AddServiceDefinition(type, type);
+        }
+        
+        /// <summary>
+        /// Register type. 
+        /// </summary> 
+        public void Add(Type type)
+        {
+            AddServiceDefinition(type, type);
+        }
+
+        /// <summary>
         /// Register type to resolve with the instance type to instantiate. 
         /// </summary> 
         public void Add(Type type, Type typeImplementation)
         {
             AddServiceDefinition(type, typeImplementation);
+        }
+        
+        /// <summary>
+        /// Register type with expression to resolve instance. 
+        /// </summary> 
+        public void Add<TType>(Func<ServiceProvider, object> provider)
+        {
+            AddExpression(typeof(TType), provider);
         }
 
         /// <summary>
@@ -54,6 +81,14 @@ namespace SimpleServiceProvider
         public TType Get<TType>() where TType : class
         {
             return ResolveType(typeof(TType)) as TType;
+        }
+        
+        /// <summary>
+        /// Get instance of a registered type. 
+        /// </summary> 
+        public object Get(Type type)
+        {
+            return ResolveType(type);
         }
 
         /// <summary>
@@ -84,8 +119,26 @@ namespace SimpleServiceProvider
                 _serviceDefinitions.Add(type, typeImplementation);
             }
         }
+        
+        private void AddExpression(Type type, Func<ServiceProvider, object> expression)
+        {
+            if (!_resolveExpressions.ContainsKey(type))
+            {
+                _resolveExpressions.Add(type, expression);
+                var definitionServiceProvider = new DefinitionsProvider();
+                expression(definitionServiceProvider);
+                foreach (var serviceDefinition in definitionServiceProvider._serviceDefinitions)
+                {
+                    if (!_serviceDefinitions.ContainsKey(serviceDefinition.Key))
+                    {
+                        _serviceDefinitions.Add(serviceDefinition);   
+                    }
+                }
+            }
+        }
 
-        private object ResolveType(Type type)
+        /// <summary></summary>
+        protected virtual object ResolveType(Type type)
         {
             Type typeImplementation;
             if (type.IsGenericType && !_serviceDefinitions.ContainsKey(type))
@@ -93,6 +146,10 @@ namespace SimpleServiceProvider
                 var genericTypeDefinition = type.GetGenericTypeDefinition();
                 var genericTypeImplementation = _serviceDefinitions[genericTypeDefinition];
                 typeImplementation = genericTypeImplementation.MakeGenericType(type.GetGenericArguments());
+            }
+            else if (_resolveExpressions.ContainsKey(type))
+            {
+                return _resolveExpressions[type](this);
             }
             else
             {
@@ -135,6 +192,15 @@ namespace SimpleServiceProvider
             var instance = Activator.CreateInstance(type, args);
             _resolvedInstances.Add(type, instance);
             return instance;
+        }
+        
+        private class DefinitionsProvider: ServiceProvider
+        {
+            protected override object ResolveType(Type type)
+            {
+                AddServiceDefinition(type, type);
+                return null;
+            }
         }
     }
 }
