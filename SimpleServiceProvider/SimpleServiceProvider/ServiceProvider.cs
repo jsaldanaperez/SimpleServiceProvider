@@ -22,7 +22,7 @@ namespace SimpleServiceProvider
         {
             AddServiceDefinition(typeof(TType), typeof(TImplementation));
         }
-        
+
         /// <summary>
         /// Register type. 
         /// </summary> 
@@ -31,7 +31,7 @@ namespace SimpleServiceProvider
             var type = typeof(TType);
             AddServiceDefinition(type, type);
         }
-        
+
         /// <summary>
         /// Register type. 
         /// </summary> 
@@ -47,7 +47,7 @@ namespace SimpleServiceProvider
         {
             AddServiceDefinition(type, typeImplementation);
         }
-        
+
         /// <summary>
         /// Register type with expression to resolve instance. 
         /// </summary> 
@@ -80,15 +80,15 @@ namespace SimpleServiceProvider
         /// </summary> 
         public TType Get<TType>() where TType : class
         {
-            return ResolveType(typeof(TType)) as TType;
+            return ResolveType(typeof(TType), typeof(TType)) as TType;
         }
-        
+
         /// <summary>
         /// Get instance of a registered type. 
         /// </summary> 
         public object Get(Type type)
         {
-            return ResolveType(type);
+            return ResolveType(type, type);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace SimpleServiceProvider
         {
             _resolvedInstances.Clear();
         }
-        
+
         /// <summary>
         /// Removes resolved and added instances from cache.
         /// </summary>
@@ -107,7 +107,7 @@ namespace SimpleServiceProvider
             _addedInstances.Clear();
             _resolvedInstances.Clear();
         }
-        
+
         private void AddServiceDefinition(Type type, Type typeImplementation)
         {
             if (_serviceDefinitions.ContainsKey(type))
@@ -119,7 +119,7 @@ namespace SimpleServiceProvider
                 _serviceDefinitions.Add(type, typeImplementation);
             }
         }
-        
+
         private void AddExpression(Type type, Func<ServiceProvider, object> expression)
         {
             if (!_resolveExpressions.ContainsKey(type))
@@ -128,41 +128,41 @@ namespace SimpleServiceProvider
             }
         }
 
-        private object ResolveType(Type type)
+        private object ResolveType(Type typeToActivate, Type typeToResolve)
         {
             Type typeImplementation;
-            if (type.IsGenericType && !_serviceDefinitions.ContainsKey(type))
+            if (typeToResolve.IsGenericType && !_serviceDefinitions.ContainsKey(typeToResolve))
             {
-                var genericTypeDefinition = type.GetGenericTypeDefinition();
-                var genericTypeImplementation = _serviceDefinitions[genericTypeDefinition];
-                typeImplementation = genericTypeImplementation.MakeGenericType(type.GetGenericArguments());
+                var genericTypeDefinition = typeToResolve.GetGenericTypeDefinition();
+                var genericTypeImplementation = GetServiceDefinitionType(typeToActivate, genericTypeDefinition);
+                typeImplementation = genericTypeImplementation.MakeGenericType(typeToResolve.GetGenericArguments());
             }
-            else if (_resolveExpressions.ContainsKey(type))
+            else if (_resolveExpressions.ContainsKey(typeToResolve))
             {
-                return _resolveExpressions[type](this);
+                return _resolveExpressions[typeToResolve](this);
             }
             else
             {
-                typeImplementation = _serviceDefinitions[type];
+                typeImplementation = GetServiceDefinitionType(typeToActivate, typeToResolve);
             }
-            
+
             if (_addedInstances.ContainsKey(typeImplementation))
             {
                 return _addedInstances[typeImplementation];
             }
-            
+
             if (_resolvedInstances.ContainsKey(typeImplementation))
             {
                 return _resolvedInstances[typeImplementation];
             }
-            
+
             var constructorInfo = typeImplementation.GetConstructors().FirstOrDefault();
 
             if (constructorInfo == null || !constructorInfo.GetParameters().Any())
             {
                 return CreateInstance(typeImplementation);
             }
- 
+
             var parameterInfos = constructorInfo.GetParameters();
             var resolvedInstances = new object[parameterInfos.Length];
 
@@ -171,7 +171,7 @@ namespace SimpleServiceProvider
                 var parameterType = parameterInfos[index].ParameterType;
                 resolvedInstances[index] = _resolvedInstances.ContainsKey(parameterType)
                     ? _resolvedInstances[parameterType]
-                    : ResolveType(parameterType);
+                    : ResolveType(typeToResolve, parameterType);
             }
 
             return CreateInstance(typeImplementation, resolvedInstances);
@@ -182,6 +182,18 @@ namespace SimpleServiceProvider
             var instance = Activator.CreateInstance(type, args);
             _resolvedInstances.Add(type, instance);
             return instance;
+        }
+
+        private Type GetServiceDefinitionType(Type typeToActivate, Type typeToResolve)
+        {
+            if (!_serviceDefinitions.ContainsKey(typeToResolve))
+            {
+                var errorMessage = typeToActivate == typeToResolve ?
+                    $"Unable to activate type '{typeToActivate.FullName}'." :
+                    $"Unable to resolve type '{typeToResolve.FullName}' while attempting to activate '{typeToActivate.FullName}'.";
+                throw new InvalidOperationException(errorMessage);
+            }
+            return _serviceDefinitions[typeToResolve];
         }
     }
 }
