@@ -76,19 +76,33 @@ namespace SimpleServiceProvider
         }
 
         /// <summary>
-        /// Get instance of a registered type. 
-        /// </summary> 
+        /// Get instance of a registered type.
+        /// </summary>
         public TType Get<TType>() where TType : class
         {
             return ResolveType(typeof(TType), typeof(TType)) as TType;
         }
 
         /// <summary>
-        /// Get instance of a registered type. 
-        /// </summary> 
+        /// Get instance of a registered type.
+        /// </summary>
         public object Get(Type type)
         {
             return ResolveType(type, type);
+        }
+
+        /// <summary>
+        /// Try to get an instance of a registered type without throwing when the type is not registered.
+        /// </summary>
+        public bool TryGet<TType>(out TType instance) where TType : class
+        {
+            if (IsRegistered(typeof(TType)))
+            {
+                instance = ResolveType(typeof(TType), typeof(TType)) as TType;
+                return true;
+            }
+            instance = null;
+            return false;
         }
 
         /// <summary>
@@ -168,10 +182,20 @@ namespace SimpleServiceProvider
 
             for (var index = 0; index < parameterInfos.Length; index++)
             {
-                var parameterType = parameterInfos[index].ParameterType;
-                resolvedInstances[index] = _resolvedInstances.ContainsKey(parameterType)
-                    ? _resolvedInstances[parameterType]
-                    : ResolveType(typeToResolve, parameterType);
+                var parameterInfo = parameterInfos[index];
+                var parameterType = parameterInfo.ParameterType;
+                if (_resolvedInstances.ContainsKey(parameterType))
+                {
+                    resolvedInstances[index] = _resolvedInstances[parameterType];
+                }
+                else if (parameterInfo.HasDefaultValue && !IsRegistered(parameterType))
+                {
+                    resolvedInstances[index] = parameterInfo.DefaultValue;
+                }
+                else
+                {
+                    resolvedInstances[index] = ResolveType(typeToResolve, parameterType);
+                }
             }
 
             return CreateInstance(typeImplementation, resolvedInstances);
@@ -182,6 +206,13 @@ namespace SimpleServiceProvider
             var instance = Activator.CreateInstance(type, args);
             _resolvedInstances.Add(type, instance);
             return instance;
+        }
+
+        private bool IsRegistered(Type type)
+        {
+            return _serviceDefinitions.ContainsKey(type)
+                || _resolveExpressions.ContainsKey(type)
+                || (type.IsGenericType && _serviceDefinitions.ContainsKey(type.GetGenericTypeDefinition()));
         }
 
         private Type GetServiceDefinitionType(Type typeToActivate, Type typeToResolve)
